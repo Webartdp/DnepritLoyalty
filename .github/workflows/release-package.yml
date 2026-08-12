@@ -1,0 +1,177 @@
+name: Build release package
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  package:
+    if: startsWith(github.head_ref, 'release/')
+    runs-on: ubuntu-22.04
+
+    services:
+      mysql:
+        image: mysql:5.7
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: modx
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -proot"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=12
+
+    env:
+      MODX_VERSION: 2.8.1-pl
+      MODX_DIR: /tmp/modx
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup PHP 7.4
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '7.4'
+          extensions: mysqli, pdo_mysql, zip, mbstring, xml, gd, curl
+          coverage: none
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Build MODX Revolution distribution
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf "${MODX_DIR}"
+          git clone --depth 1 --branch "v${MODX_VERSION}" \
+            https://github.com/modxcms/revolution.git "${MODX_DIR}"
+
+          mkdir -p \
+            "${MODX_DIR}/core/cache" \
+            "${MODX_DIR}/core/config" \
+            "${MODX_DIR}/core/packages"
+
+          cat > "${MODX_DIR}/_build/build.config.php" <<PHP
+          <?php
+          define('MODX_CORE_PATH', '${MODX_DIR}/core/');
+          define('MODX_CONFIG_KEY', 'config');
+          define('XPDO_DSN', 'mysql:host=127.0.0.1;dbname=modx;charset=utf8');
+          define('XPDO_DB_USER', 'root');
+          define('XPDO_DB_PASS', 'root');
+          define('XPDO_TABLE_PREFIX', 'modx_');
+          PHP
+
+          cp \
+            "${MODX_DIR}/_build/build.properties.sample.php" \
+            "${MODX_DIR}/_build/build.properties.php"
+
+          sed -i \
+            's/dbname=revo_test/dbname=modx/g' \
+            "${MODX_DIR}/_build/build.properties.php"
+
+          php \
+            "${MODX_DIR}/_build/transport.core.php"
+
+          test -s \
+            "${MODX_DIR}/core/packages/core.transport.zip"
+
+      - name: Install clean MODX
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          php "${MODX_DIR}/setup/cli-install.php" \
+            --mode=new \
+            --database_type=mysql \
+            --database_server=127.0.0.1 \
+            --database=modx \
+            --database_user=root \
+            --database_password=root \
+            --database_connection_charset=utf8 \
+            --database_charset=utf8 \
+            --database_collation=utf8_general_ci \
+            --table_prefix=modx_ \
+            --https_port=443 \
+            --http_host=localhost \
+            --inplace=0 \
+            --unpacked=0 \
+            --language=en \
+            --cmsadmin=admin \
+            "--cmspassword=DnepritLoyalty-CI-123!" \
+            --cmsadminemail=ci@example.invalid \
+            --context_web_path="${MODX_DIR}/" \
+            --context_web_url=/ \
+            --core_path="${MODX_DIR}/core/" \
+            --context_mgr_path="${MODX_DIR}/manager/" \
+            --context_mgr_url=/manager/ \
+            --context_connectors_path="${MODX_DIR}/connectors/" \
+            --context_connectors_url=/connectors/ \
+            --remove_setup_directory=0
+
+          test -f \
+            "${MODX_DIR}/config.core.php"
+
+      - name: Run checks
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          find . \
+            -type f \
+            -name '*.php' \
+            -not -path './.git/*' \
+            -print0 \
+            | xargs -0 -n1 php -l
+
+          php tests/architecture.php
+          php tests/manager_controller.php
+
+          find \
+            assets/components/dnepritloyalty/js \
+            -type f \
+            -name '*.js' \
+            -print0 \
+            | xargs -0 -n1 node --check
+
+          python3 -c \
+            "import xml.etree.ElementTree as ET; ET.parse('core/components/dnepritloyalty/schema/dnepritloyalty.mysql.schema.xml')"
+
+      - name: Build package
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          rm -rf _dist
+
+          MODX_BASE_PATH="${MODX_DIR}" \
+            php _build/build.transport.php
+
+          test -s \
+            "_dist/dnepritloyalty-0.1.0-beta1.transport.zip"
+
+          (
+            cd _dist
+            sha256sum --check \
+              "dnepritloyalty-0.1.0-beta1.transport.zip.sha256"
+          )
+
+      - name: Upload package
+        uses: actions/upload-artifact@v4
+        with:
+          name: dnepritloyalty-0.1.0-beta1
+          path: |
+            _dist/dnepritloyalty-0.1.0-beta1.transport.zip
+            _dist/dnepritloyalty-0.1.0-beta1.transport.zip.sha256
+            _dist/release.json
+          if-no-files-found: error
+          retention-days: 30

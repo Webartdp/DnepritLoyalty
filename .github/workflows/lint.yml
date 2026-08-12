@@ -1,0 +1,42 @@
+name: Lint
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+      - 'release/**'
+
+jobs:
+  syntax:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup PHP 7.4
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '7.4'
+          coverage: none
+
+      - name: PHP syntax
+        run: find . -type f -name '*.php' -not -path './.git/*' -print0 | xargs -0 -n1 php -l
+
+      - name: Architecture
+        run: php tests/architecture.php
+
+      - name: Manager controller
+        run: php tests/manager_controller.php
+
+      - name: XML schema
+        run: python3 -c "import xml.etree.ElementTree as ET; ET.parse('core/components/dnepritloyalty/schema/dnepritloyalty.mysql.schema.xml')"
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: JavaScript syntax
+        run: find assets/components/dnepritloyalty/js -type f -name '*.js' -print0 | xargs -0 -n1 node --check
