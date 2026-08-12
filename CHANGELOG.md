@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.1.0-beta2] - 2026-08-12
+
+### Fixed
+
+- Rebuilt the Settings tab as a real `MODx.FormPanel` instead of a nested form that could collapse to zero height in the manager.
+- Settings now load visibly and can be saved from a persistent top toolbar.
+- Added explicit vertical scrolling for long settings forms.
+- Added responsive form width so fields no longer stretch across the entire manager viewport.
+- Added normal spacing between labels, fields, sections and action buttons.
+- Replaced boolean combo boxes with manager checkboxes for clearer on/off controls.
+- Added grouped sections for general settings, bonus earning, bonus spending, Lifetime Discount and order statuses.
+- Added Russian and Ukrainian manager lexicon strings for the settings screen.
+- Added CI regression checks for the settings panel structure and manager CSS.
+
 ## [0.1.0-beta1] - 2026-08-12
 
 ### Added

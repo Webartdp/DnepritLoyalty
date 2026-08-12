@@ -11,7 +11,7 @@ permissions:
 
 jobs:
   package:
-    if: startsWith(github.head_ref, 'release/')
+    if: github.event_name == 'workflow_dispatch' || startsWith(github.head_ref, 'release/')
     runs-on: ubuntu-22.04
 
     services:
@@ -156,22 +156,27 @@ jobs:
           MODX_BASE_PATH="${MODX_DIR}" \
             php _build/build.transport.php
 
-          test -s \
-            "_dist/dnepritloyalty-0.1.0-beta1.transport.zip"
+          PACKAGE_FILE="$(php -r '$data = json_decode(file_get_contents("_dist/release.json"), true); if (!is_array($data) || empty($data["filename"])) { exit(1); } echo $data["filename"];')"
+          PACKAGE_ARTIFACT="${PACKAGE_FILE%.transport.zip}"
+
+          test -s "_dist/${PACKAGE_FILE}"
+          test -s "_dist/${PACKAGE_FILE}.sha256"
 
           (
             cd _dist
-            sha256sum --check \
-              "dnepritloyalty-0.1.0-beta1.transport.zip.sha256"
+            sha256sum --check "${PACKAGE_FILE}.sha256"
           )
+
+          echo "PACKAGE_FILE=${PACKAGE_FILE}" >> "${GITHUB_ENV}"
+          echo "PACKAGE_ARTIFACT=${PACKAGE_ARTIFACT}" >> "${GITHUB_ENV}"
 
       - name: Upload package
         uses: actions/upload-artifact@v4
         with:
-          name: dnepritloyalty-0.1.0-beta1
+          name: ${{ env.PACKAGE_ARTIFACT }}
           path: |
-            _dist/dnepritloyalty-0.1.0-beta1.transport.zip
-            _dist/dnepritloyalty-0.1.0-beta1.transport.zip.sha256
+            _dist/${{ env.PACKAGE_FILE }}
+            _dist/${{ env.PACKAGE_FILE }}.sha256
             _dist/release.json
           if-no-files-found: error
           retention-days: 30

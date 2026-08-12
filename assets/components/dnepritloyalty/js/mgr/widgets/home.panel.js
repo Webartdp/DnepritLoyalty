@@ -6,26 +6,30 @@ DnepritLoyalty.panel.Home = function(config) {
         {
             border: false,
             baseCls: 'modx-formpanel',
-            cls: 'container',
+            cls: 'container dnepritloyalty-home',
             items: [
                 {
                     html:
-                        '<h2>DnepritLoyalty</h2>' +
-                        '<p>Бонусні рахунки та Lifetime Discount</p>',
+                        '<h2>' + _('dnepritloyalty') + '</h2>' +
+                        '<p>' + _('dnepritloyalty_menu_desc') + '</p>',
                     border: false,
                     cls: 'modx-page-header'
                 },
                 {
                     xtype: 'modx-tabs',
+                    id: 'dnepritloyalty-main-tabs',
                     deferredRender: false,
                     border: true,
+                    cls: 'dnepritloyalty-tabs',
+                    activeTab: 0,
                     defaults: {
                         layout: 'fit',
-                        autoHeight: false
+                        autoHeight: false,
+                        border: false
                     },
                     items: [
                         {
-                            title: 'Клієнти',
+                            title: _('dnepritloyalty_accounts'),
                             items: [
                                 {
                                     xtype: 'dnepritloyalty-grid-accounts'
@@ -33,7 +37,7 @@ DnepritLoyalty.panel.Home = function(config) {
                             ]
                         },
                         {
-                            title: 'Операції',
+                            title: _('dnepritloyalty_transactions'),
                             items: [
                                 {
                                     xtype: 'dnepritloyalty-grid-transactions'
@@ -41,7 +45,7 @@ DnepritLoyalty.panel.Home = function(config) {
                             ]
                         },
                         {
-                            title: 'Рівні',
+                            title: _('dnepritloyalty_levels'),
                             items: [
                                 {
                                     xtype: 'dnepritloyalty-grid-levels'
@@ -49,7 +53,7 @@ DnepritLoyalty.panel.Home = function(config) {
                             ]
                         },
                         {
-                            title: 'Правила',
+                            title: _('dnepritloyalty_rules'),
                             items: [
                                 {
                                     xtype: 'dnepritloyalty-grid-rules'
@@ -57,7 +61,7 @@ DnepritLoyalty.panel.Home = function(config) {
                             ]
                         },
                         {
-                            title: 'Налаштування',
+                            title: _('dnepritloyalty_settings'),
                             items: [
                                 {
                                     xtype: 'dnepritloyalty-panel-settings'
