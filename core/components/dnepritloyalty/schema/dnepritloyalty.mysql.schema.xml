@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<model package="dnepritloyalty" baseClass="xPDOObject" platform="mysql" defaultEngine="InnoDB" phpdoc-package="dnepritloyalty" version="1.3">
+    <object class="DnepritLoyaltyAccount" table="dneprit_loyalty_accounts" extends="xPDOSimpleObject">
+        <field key="user_id" dbtype="int" precision="10" attributes="unsigned" phptype="integer" null="false" index="unique" />
+        <field key="balance" dbtype="decimal" precision="15,2" phptype="float" null="false" default="0.00" />
+        <field key="reserved" dbtype="decimal" precision="15,2" phptype="float" null="false" default="0.00" />
+        <field key="lifetime_total" dbtype="decimal" precision="15,2" phptype="float" null="false" default="0.00" index="index" />
+        <field key="level_id" dbtype="int" precision="10" attributes="unsigned" phptype="integer" null="false" default="0" index="index" />
+        <field key="discount_type" dbtype="varchar" precision="16" phptype="string" null="false" default="percent" />
+        <field key="discount_value" dbtype="decimal" precision="12,2" phptype="float" null="false" default="0.00" />
+        <field key="created_at" dbtype="datetime" phptype="datetime" null="false" />
+        <field key="updated_at" dbtype="datetime" phptype="datetime" null="false" index="index" />
+        <aggregate alias="User" class="modUser" local="user_id" foreign="id" cardinality="one" owner="foreign" />
+        <aggregate alias="Level" class="DnepritLoyaltyLevel" local="level_id" foreign="id" cardinality="one" owner="foreign" />
+    </object>
+
+    <object class="DnepritLoyaltyTransaction" table="dneprit_loyalty_transactions" extends="xPDOSimpleObject">
+        <field key="account_id" dbtype="int" precision="10" attributes="unsigned" phptype="integer" null="false" index="index" />
+        <field key="user_id" dbtype="int" precision="10" attributes="unsigned" phptype="integer" null="false" index="index" />
+        <field key="order_id" dbtype="int" precision="10" attributes="unsigned" phptype="integer" null="false" default="0" index="index" />
+        <field key="amount" dbtype="decimal" precision="15,2" phptype="float" null="false" default="0.00" />
+        <field key="type" dbtype="varchar" precision="40" phptype="string" null="false" default="manual" index="index" />
+        <field key="status" dbtype="varchar" precision="24" phptype="string" null="false" default="posted" index="index" />
+        <field key="description" dbtype="varchar" precision="255" phptype="string" null="false" default="" />
+        <field key="unique_key" dbtype="varchar" precision="191" phptype="string" null="false" default="" index="unique" />
+        <field key="expires_at" dbtype="datetime" phptype="datetime" null="true" index="index" />
+        <field key="created_at" dbtype="datetime" phptype="datetime" null="false" index="index" />
+        <field key="updated_at" dbtype="datetime" phptype="datetime" null="false" />
+        <field key="manager_id" dbtype="int" precision="10" attributes="unsigned" phptype="integer" null="false" default="0" />
+        <aggregate alias="Account" class="DnepritLoyaltyAccount" local="account_id" foreign="id" cardinality="one" owner="foreign" />
+    </object>
+
+    <object class="DnepritLoyaltyLevel" table="dneprit_loyalty_levels" extends="xPDOSimpleObject">
+        <field key="title" dbtype="varchar" precision="120" phptype="string" null="false" default="" />
+        <field key="threshold" dbtype="decimal" precision="15,2" phptype="float" null="false" default="0.00" index="index" />
+        <field key="discount_type" dbtype="varchar" precision="16" phptype="string" null="false" default="percent" />
+        <field key="discount_value" dbtype="decimal" precision="12,2" phptype="float" null="false" default="0.00" />
+        <field key="earn_percent" dbtype="decimal" precision="8,3" phptype="float" null="false" default="0.000" />
+        <field key="active" dbtype="tinyint" precision="1" phptype="boolean" null="false" default="1" index="index" />
+        <field key="rank" dbtype="int" precision="10" phptype="integer" null="false" default="0" index="index" />
+    </object>
+
+    <object class="DnepritLoyaltyRule" table="dneprit_loyalty_rules" extends="xPDOSimpleObject">
+        <field key="key" dbtype="varchar" precision="64" phptype="string" null="false" default="" index="unique" />
+        <field key="title" dbtype="varchar" precision="120" phptype="string" null="false" default="" />
+        <field key="enabled" dbtype="tinyint" precision="1" phptype="boolean" null="false" default="0" index="index" />
+        <field key="amount" dbtype="decimal" precision="15,2" phptype="float" null="false" default="0.00" />
+        <field key="once_only" dbtype="tinyint" precision="1" phptype="boolean" null="false" default="1" />
+        <field key="description" dbtype="varchar" precision="255" phptype="string" null="false" default="" />
+    </object>
+
+    <object class="DnepritLoyaltyOrderReward" table="dneprit_loyalty_order_rewards" extends="xPDOSimpleObject">
+        <field key="order_id" dbtype="int" precision="10" attributes="unsigned" phptype="integer" null="false" index="unique" />
+        <field key="user_id" dbtype="int" precision="10" attributes="unsigned" phptype="integer" null="false" index="index" />
+        <field key="order_total" dbtype="decimal" precision="15,2" phptype="float" null="false" default="0.00" />
+        <field key="points_earned" dbtype="decimal" precision="15,2" phptype="float" null="false" default="0.00" />
+        <field key="points_spent" dbtype="decimal" precision="15,2" phptype="float" null="false" default="0.00" />
+        <field key="lifetime_discount" dbtype="decimal" precision="15,2" phptype="float" null="false" default="0.00" />
+        <field key="state" dbtype="varchar" precision="24" phptype="string" null="false" default="pending" index="index" />
+        <field key="reservation_key" dbtype="varchar" precision="191" phptype="string" null="false" default="" index="index" />
+        <field key="created_at" dbtype="datetime" phptype="datetime" null="false" />
+        <field key="updated_at" dbtype="datetime" phptype="datetime" null="false" />
+    </object>
+</model>

@@ -1,0 +1,17 @@
+.dneprit-loyalty-checkout {
+    margin: 1rem 0;
+}
+
+.dneprit-loyalty-checkout label {
+    display: block;
+}
+
+.dneprit-loyalty-history {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.dneprit-loyalty-history td {
+    padding: .35rem;
+    border-bottom: 1px solid #ddd;
+}
