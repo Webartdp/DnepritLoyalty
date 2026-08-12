@@ -1,0 +1,53 @@
+name: Bootstrap beta1 source
+
+on:
+  push:
+    branches:
+      - release/beta1
+    paths:
+      - 'tools/beta1-source/**'
+      - '.github/workflows/bootstrap-beta1.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  bootstrap:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout beta1 branch
+        uses: actions/checkout@v4
+        with:
+          ref: release/beta1
+
+      - name: Restore complete beta1 source
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat tools/beta1-source/part* | base64 -d > /tmp/dnepritloyalty-beta1-source.tar.xz
+          echo "7164e1bfd3c7811d7114c502b6200df86b728db8fa0c7e7ad36f60b5a7a39c62  /tmp/dnepritloyalty-beta1-source.tar.xz" | sha256sum -c -
+          tar -xJf /tmp/dnepritloyalty-beta1-source.tar.xz -C .
+
+      - name: Validate source
+        shell: bash
+        run: |
+          set -euo pipefail
+          find . -type f -name '*.php' -not -path './.git/*' -print0 | xargs -0 -n1 php -l
+          php tests/architecture.php
+          php tests/manager_controller.php
+          python3 -c "import xml.etree.ElementTree as ET; ET.parse('core/components/dnepritloyalty/schema/dnepritloyalty.mysql.schema.xml')"
+          find assets/components/dnepritloyalty/js -type f -name '*.js' -print0 | xargs -0 -n1 node --check
+
+      - name: Commit restored source
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          if git diff --cached --quiet; then
+            exit 0
+          fi
+          git commit -m "Build DnepritLoyalty 0.1.0-beta1 source"
+          git push origin HEAD:release/beta1
