@@ -12,6 +12,8 @@ $required = [
     'core/components/dnepritloyalty/elements/snippets/account.snippet.php',
     'core/components/dnepritloyalty/elements/snippets/cart.snippet.php',
     'assets/components/dnepritloyalty/connector.php',
+    'assets/components/dnepritloyalty/js/mgr/widgets/settings.panel.js',
+    'assets/components/dnepritloyalty/css/mgr.css',
     '_build/build.transport.php',
     '_build/resolvers/resolve.tables.php',
 ];
@@ -115,6 +117,82 @@ if (
     );
 
     exit(1);
+}
+
+$settingsPanel = file_get_contents(
+    $root .
+    '/assets/components/dnepritloyalty/js/mgr/widgets/settings.panel.js'
+);
+
+foreach (
+    [
+        'MODx.FormPanel',
+        "action: 'settings/save'",
+        'this.loadSettings()',
+        'primary-button',
+        'dnepritloyalty-settings-fieldset',
+        'formWidth',
+        'autoScroll: true',
+    ] as $needle
+) {
+    if (
+        strpos(
+            $settingsPanel,
+            $needle
+        ) === false
+    ) {
+        fwrite(
+            STDERR,
+            'Settings UI regression check failed: ' .
+            $needle .
+            PHP_EOL
+        );
+
+        exit(1);
+    }
+}
+
+if (
+    strpos(
+        $settingsPanel,
+        "xtype: 'form'"
+    ) !== false
+) {
+    fwrite(
+        STDERR,
+        "Settings panel must not use a zero-height nested form.\n"
+    );
+
+    exit(1);
+}
+
+$managerCss = file_get_contents(
+    $root .
+    '/assets/components/dnepritloyalty/css/mgr.css'
+);
+
+foreach (
+    [
+        '.dnepritloyalty-settings-panel .x-form-item',
+        '.dnepritloyalty-settings-fieldset',
+        '.dnepritloyalty-settings-toolbar',
+    ] as $selector
+) {
+    if (
+        strpos(
+            $managerCss,
+            $selector
+        ) === false
+    ) {
+        fwrite(
+            STDERR,
+            'Missing settings UI style: ' .
+            $selector .
+            PHP_EOL
+        );
+
+        exit(1);
+    }
 }
 
 echo
