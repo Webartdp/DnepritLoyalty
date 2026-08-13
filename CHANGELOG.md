@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.1.0-beta7] - 2026-08-13
+
+### Fixed
+
+- Bulk **Recalculate purchases** now sends one manager request for all selected customers instead of one parallel request per row.
+- Added `accounts/recalculatebulk` processor that recalculates selected customers sequentially inside one PHP request.
+- Bulk recalculation returns one summary with requested, successful and failed customer counts.
+- The manager no longer floods the MODX connector with simultaneous requests, preventing the 508/error-dialog cascade seen during Select All recalculation.
+
 ## [0.1.0-beta6] - 2026-08-13
 
 ### Fixed
@@ -26,9 +35,9 @@
 - Added an explicit checkbox selection column to the Customers grid.
 - Added **Open user** action for the selected Office/modUser customer.
 - Added right-click context menu with Open user, Recalculate purchases and Adjust balance actions.
-- Double-clicking a customer opens the corresponding MODX user profile.
-- Synchronization and Lifetime recalculation failures now show a visible manager error instead of failing silently.
-- Customer action buttons now explain when no customer has been selected.
+- Double-clicking a customer opens the MODX user edit page.
+- Synchronization and Lifetime recalculation failures are shown visibly instead of failing silently.
+- Customer action buttons explain when no customer has been selected.
 - Package upgrades no longer overwrite existing `dnepritloyalty.*` system-setting values saved for the shop.
 
 ## [0.1.0-beta3] - 2026-08-13
