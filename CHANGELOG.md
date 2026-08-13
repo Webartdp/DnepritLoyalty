@@ -10,6 +10,7 @@
 - Double-clicking a customer opens the corresponding MODX user profile.
 - Synchronization and Lifetime recalculation failures now show a visible manager error instead of failing silently.
 - Customer action buttons now explain when no customer has been selected.
+- Package upgrades no longer overwrite existing `dnepritloyalty.*` system-setting values saved for the shop.
 
 ## [0.1.0-beta3] - 2026-08-13
 
