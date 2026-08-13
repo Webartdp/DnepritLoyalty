@@ -350,36 +350,8 @@ Ext.extend(
                 return;
             }
 
+            var userIds = [];
             var grid = this;
-            var total = rows.length;
-            var completed = 0;
-            var successCount = 0;
-            var failedCount = 0;
-
-            var finish = function() {
-                completed++;
-
-                if (completed < total) {
-                    return;
-                }
-
-                grid.getSelectionModel().clearSelections();
-                grid.refresh();
-
-                if (failedCount > 0) {
-                    MODx.msg.alert(
-                        'Пересчёт завершён',
-                        'Успешно: ' + successCount +
-                            '. Ошибок: ' + failedCount + '.'
-                    );
-                } else {
-                    MODx.msg.status({
-                        title: _('dnepritloyalty'),
-                        message: 'Покупки пересчитаны для клиентов: ' +
-                            successCount + '.'
-                    });
-                }
-            };
 
             Ext.each(
                 rows,
@@ -387,36 +359,83 @@ Ext.extend(
                     var userId = grid.rowUserId(row);
 
                     if (!userId) {
-                        failedCount++;
-                        finish();
                         return;
                     }
 
-                    MODx.Ajax.request({
-                        url: DnepritLoyalty.config.connectorUrl,
-                        params: {
-                            action: 'accounts/recalculate',
-                            user_id: userId
-                        },
-                        listeners: {
-                            success: {
-                                fn: function() {
-                                    successCount++;
-                                    finish();
-                                },
-                                scope: grid
-                            },
-                            failure: {
-                                fn: function() {
-                                    failedCount++;
-                                    finish();
-                                },
-                                scope: grid
-                            }
+                    var exists = false;
+
+                    for (var i = 0; i < userIds.length; i++) {
+                        if (userIds[i] === userId) {
+                            exists = true;
+                            break;
                         }
-                    });
+                    }
+
+                    if (!exists) {
+                        userIds.push(userId);
+                    }
                 }
             );
+
+            if (!userIds.length) {
+                MODx.msg.alert(
+                    'Ошибка',
+                    'Не удалось определить ID выбранных клиентов.'
+                );
+                return;
+            }
+
+            MODx.Ajax.request({
+                url: DnepritLoyalty.config.connectorUrl,
+                params: {
+                    action: 'accounts/recalculatebulk',
+                    user_ids: Ext.encode(userIds)
+                },
+                listeners: {
+                    success: {
+                        fn: function(response) {
+                            var object = response.object || {};
+                            var successCount = parseInt(
+                                object.success_count,
+                                10
+                            ) || 0;
+                            var failedCount = parseInt(
+                                object.failed_count,
+                                10
+                            ) || 0;
+
+                            this.getSelectionModel().clearSelections();
+                            this.refresh();
+
+                            if (failedCount > 0) {
+                                MODx.msg.alert(
+                                    'Пересчёт завершён',
+                                    'Успешно: ' + successCount +
+                                        '. Ошибок: ' + failedCount + '.'
+                                );
+                            } else {
+                                MODx.msg.status({
+                                    title: _('dnepritloyalty'),
+                                    message: response.message ||
+                                        'Покупки пересчитаны для клиентов: ' +
+                                        successCount + '.'
+                                });
+                            }
+                        },
+                        scope: this
+                    },
+                    failure: {
+                        fn: function(response) {
+                            MODx.msg.alert(
+                                'Ошибка',
+                                response.message ||
+                                    'Не удалось выполнить массовый пересчёт.'
+                            );
+                        },
+                        scope: this
+                    }
+                }
+            });
         }
     }
 );
