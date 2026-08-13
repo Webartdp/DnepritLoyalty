@@ -147,12 +147,54 @@ Ext.extend(
         selectedRows: function() {
             if (
                 this.menu &&
-                this.menu.record
+                this.menu.record &&
+                this.menu.isVisible &&
+                this.menu.isVisible()
             ) {
                 return [this.menu.record];
             }
 
-            return this.getSelectionModel().getSelections();
+            return this.getSelectionModel().getSelections() || [];
+        },
+
+        rowData: function(row) {
+            if (!row) {
+                return null;
+            }
+
+            if (row.data && typeof row.data === 'object') {
+                return row.data;
+            }
+
+            if (typeof row.get === 'function') {
+                return {
+                    user_id: row.get('user_id'),
+                    fullname: row.get('fullname'),
+                    email: row.get('email'),
+                    username: row.get('username'),
+                    balance: row.get('balance'),
+                    reserved: row.get('reserved'),
+                    available: row.get('available'),
+                    lifetime_total: row.get('lifetime_total'),
+                    level_title: row.get('level_title'),
+                    discount_type: row.get('discount_type'),
+                    discount_value: row.get('discount_value'),
+                    updated_at: row.get('updated_at')
+                };
+            }
+
+            if (typeof row === 'object') {
+                return row;
+            }
+
+            return null;
+        },
+
+        rowUserId: function(row) {
+            var data = this.rowData(row);
+            var userId = data ? parseInt(data.user_id, 10) : 0;
+
+            return isNaN(userId) ? 0 : userId;
         },
 
         selectedRow: function() {
@@ -246,9 +288,19 @@ Ext.extend(
                 return;
             }
 
+            var userId = this.rowUserId(row);
+
+            if (!userId) {
+                MODx.msg.alert(
+                    'Ошибка',
+                    'Не удалось определить ID пользователя.'
+                );
+                return;
+            }
+
             MODx.loadPage(
                 'security/user/update',
-                'id=' + parseInt(row.data.user_id, 10)
+                'id=' + userId
             );
         },
 
@@ -259,9 +311,19 @@ Ext.extend(
                 return;
             }
 
+            var data = this.rowData(row);
+
+            if (!data || !this.rowUserId(row)) {
+                MODx.msg.alert(
+                    'Ошибка',
+                    'Не удалось определить данные клиента.'
+                );
+                return;
+            }
+
             var win = MODx.load({
                 xtype: 'dnepritloyalty-window-adjust',
-                record: row.data,
+                record: data,
                 listeners: {
                     success: {
                         fn: function() {
@@ -272,7 +334,7 @@ Ext.extend(
                 }
             });
 
-            win.setValues(row.data);
+            win.setValues(data);
             win.show();
         },
 
@@ -301,6 +363,7 @@ Ext.extend(
                     return;
                 }
 
+                grid.getSelectionModel().clearSelections();
                 grid.refresh();
 
                 if (failedCount > 0) {
@@ -321,11 +384,19 @@ Ext.extend(
             Ext.each(
                 rows,
                 function(row) {
+                    var userId = grid.rowUserId(row);
+
+                    if (!userId) {
+                        failedCount++;
+                        finish();
+                        return;
+                    }
+
                     MODx.Ajax.request({
                         url: DnepritLoyalty.config.connectorUrl,
                         params: {
                             action: 'accounts/recalculate',
-                            user_id: row.data.user_id
+                            user_id: userId
                         },
                         listeners: {
                             success: {

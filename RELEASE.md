@@ -3,21 +3,21 @@
 Current prerelease:
 
 ```text
-Version: 0.1.0-beta4
-Package: dnepritloyalty-0.1.0-beta4.transport.zip
+Version: 0.1.0-beta6
+Package: dnepritloyalty-0.1.0-beta6.transport.zip
 Target: MODX Revolution 2.8.1 / PHP 7.4+ / miniShop2 / Office-compatible modUser accounts
 ```
 
-Beta4 completes the customer-selection UI needed for the Office integration stage.
+Beta6 fixes bulk Lifetime recalculation for selected Office customers.
 
-Primary beta4 changes:
+Primary beta6 changes:
 
-1. Customers grid now has a visible checkbox selection column.
-2. Added **Open user** action for the selected MODX/Office customer.
-3. Right-click context menu provides Open user, Recalculate purchases and Adjust balance actions.
-4. Double-clicking a customer opens the MODX user edit page.
-5. Synchronization and Lifetime recalculation failures are shown visibly instead of failing silently.
-6. Customer actions explain when no row is selected.
+1. Customers grid keeps true multi-select checkbox behavior.
+2. Bulk **Recalculate purchases** normalizes selected Ext records before reading `user_id`.
+3. Raw context-menu records and normal Ext Records are both supported.
+4. Hidden stale context-menu records no longer override the toolbar checkbox selection.
+5. Invalid rows are counted as failed instead of crashing the manager JavaScript.
+6. The grid refreshes after the whole batch finishes.
 
 For the current shop configuration use:
 
@@ -32,7 +32,7 @@ Keep the loyalty program and bonus spending disabled while validating historical
 
 Next validation step:
 
-1. select one synchronized Office customer;
-2. open the MODX user profile and verify the identity;
-3. run **Recalculate purchases**;
-4. compare the resulting Lifetime total with that customer's paid/sent miniShop2 orders.
+1. select one or all synchronized Office customers;
+2. run **Recalculate purchases**;
+3. verify the manager reports how many customers were recalculated;
+4. compare each Lifetime total with that customer's paid/sent miniShop2 orders.

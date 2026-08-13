@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.1.0-beta6] - 2026-08-13
+
+### Fixed
+
+- Bulk **Recalculate purchases** no longer assumes every selected row has a `row.data` object.
+- Customer rows are normalized before reading `user_id`, so Ext Records and raw context-menu records are both supported.
+- Toolbar actions ignore stale hidden context-menu records and use the actual checkbox selection.
+- Invalid selected rows are counted as failures instead of throwing a JavaScript exception.
+- Selection is cleared after a completed bulk recalculation and the grid is refreshed once.
+
 ## [0.1.0-beta5] - 2026-08-13
 
 ### Fixed
