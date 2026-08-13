@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.1.0-beta5] - 2026-08-13
+
+### Fixed
+
+- Customer checkbox selection is now true multi-select instead of `singleSelect` mode.
+- The header checkbox now selects and clears all customer rows on the current grid page.
+- **Recalculate purchases** works for all selected customers, including a Select All selection.
+- **Open user** and **Adjust balance** require exactly one selected customer and show a clear warning otherwise.
+
 ## [0.1.0-beta4] - 2026-08-13
 
 ### Fixed

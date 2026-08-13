@@ -2,7 +2,7 @@ DnepritLoyalty.grid.Accounts = function(config) {
     config = config || {};
 
     var selectionModel = new Ext.grid.CheckboxSelectionModel({
-        singleSelect: true
+        singleSelect: false
     });
 
     Ext.applyIf(config, {
@@ -133,7 +133,7 @@ DnepritLoyalty.grid.Accounts = function(config) {
     this.on(
         'rowdblclick',
         function(grid, rowIndex) {
-            grid.getSelectionModel().selectRow(rowIndex);
+            grid.getSelectionModel().selectRow(rowIndex, false);
             grid.openUser();
         },
         this
@@ -144,21 +144,27 @@ Ext.extend(
     DnepritLoyalty.grid.Accounts,
     MODx.grid.Grid,
     {
-        selectedRow: function() {
+        selectedRows: function() {
             if (
                 this.menu &&
                 this.menu.record
             ) {
-                return this.menu.record;
+                return [this.menu.record];
             }
 
-            return this.getSelectionModel().getSelected();
+            return this.getSelectionModel().getSelections();
         },
 
-        requireSelectedRow: function() {
-            var row = this.selectedRow();
+        selectedRow: function() {
+            var rows = this.selectedRows();
 
-            if (!row) {
+            return rows.length ? rows[0] : false;
+        },
+
+        requireSingleSelectedRow: function() {
+            var rows = this.selectedRows();
+
+            if (!rows.length) {
                 MODx.msg.alert(
                     'Внимание',
                     'Выберите клиента галочкой или строкой.'
@@ -167,7 +173,16 @@ Ext.extend(
                 return false;
             }
 
-            return row;
+            if (rows.length > 1) {
+                MODx.msg.alert(
+                    'Внимание',
+                    'Для этого действия выберите только одного клиента.'
+                );
+
+                return false;
+            }
+
+            return rows[0];
         },
 
         getMenu: function() {
@@ -225,7 +240,7 @@ Ext.extend(
         },
 
         openUser: function() {
-            var row = this.requireSelectedRow();
+            var row = this.requireSingleSelectedRow();
 
             if (!row) {
                 return;
@@ -238,7 +253,7 @@ Ext.extend(
         },
 
         adjustBalance: function() {
-            var row = this.requireSelectedRow();
+            var row = this.requireSingleSelectedRow();
 
             if (!row) {
                 return;
@@ -262,43 +277,75 @@ Ext.extend(
         },
 
         recalculate: function() {
-            var row = this.requireSelectedRow();
+            var rows = this.selectedRows();
 
-            if (!row) {
+            if (!rows.length) {
+                MODx.msg.alert(
+                    'Внимание',
+                    'Выберите одного или несколько клиентов.'
+                );
+
                 return;
             }
 
-            MODx.Ajax.request({
-                url: DnepritLoyalty.config.connectorUrl,
-                params: {
-                    action: 'accounts/recalculate',
-                    user_id: row.data.user_id
-                },
-                listeners: {
-                    success: {
-                        fn: function(response) {
-                            MODx.msg.status({
-                                title: _('dnepritloyalty'),
-                                message: response.message ||
-                                    'Покупки пересчитаны.'
-                            });
+            var grid = this;
+            var total = rows.length;
+            var completed = 0;
+            var successCount = 0;
+            var failedCount = 0;
 
-                            this.refresh();
-                        },
-                        scope: this
-                    },
-                    failure: {
-                        fn: function(response) {
-                            MODx.msg.alert(
-                                _('error'),
-                                response.message ||
-                                    'Не удалось пересчитать покупки.'
-                            );
-                        },
-                        scope: this
-                    }
+            var finish = function() {
+                completed++;
+
+                if (completed < total) {
+                    return;
                 }
-            });
+
+                grid.refresh();
+
+                if (failedCount > 0) {
+                    MODx.msg.alert(
+                        'Пересчёт завершён',
+                        'Успешно: ' + successCount +
+                            '. Ошибок: ' + failedCount + '.'
+                    );
+                } else {
+                    MODx.msg.status({
+                        title: _('dnepritloyalty'),
+                        message: 'Покупки пересчитаны для клиентов: ' +
+                            successCount + '.'
+                    });
+                }
+            };
+
+            Ext.each(
+                rows,
+                function(row) {
+                    MODx.Ajax.request({
+                        url: DnepritLoyalty.config.connectorUrl,
+                        params: {
+                            action: 'accounts/recalculate',
+                            user_id: row.data.user_id
+                        },
+                        listeners: {
+                            success: {
+                                fn: function() {
+                                    successCount++;
+                                    finish();
+                                },
+                                scope: grid
+                            },
+                            failure: {
+                                fn: function() {
+                                    failedCount++;
+                                    finish();
+                                },
+                                scope: grid
+                            }
+                        }
+                    });
+                }
+            );
         }
     }
 );
