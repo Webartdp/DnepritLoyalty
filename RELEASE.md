@@ -3,40 +3,41 @@
 Current prerelease:
 
 ```text
-Version: 0.1.0-beta2
-Package: dnepritloyalty-0.1.0-beta2.transport.zip
-Target: MODX Revolution 2.8.1 / PHP 7.4+ / miniShop2
+Version: 0.1.0-beta3
+Package: dnepritloyalty-0.1.0-beta3.transport.zip
+Target: MODX Revolution 2.8.1 / PHP 7.4+ / miniShop2 / Office-compatible modUser accounts
 ```
 
-Beta2 is the first manager-UI correction release after installing beta1 on a real MODX shop.
+Beta3 adds the first explicit Office integration step: synchronization of existing shop customers from configured MODX user groups into loyalty accounts.
 
-Primary beta2 changes:
+Primary beta3 changes:
 
-1. Settings tab is a visible `MODx.FormPanel` and no longer collapses inside the tab.
-2. Save and reload actions are always visible in the top toolbar.
-3. Settings are grouped into logical fieldsets.
-4. Form width is capped for readable desktop layouts instead of stretching fields across the full viewport.
-5. Labels use top alignment with normal spacing between controls.
-6. Long settings pages have explicit vertical scrolling.
-7. Russian and Ukrainian settings lexicons are included.
+1. Customers tab has a **Synchronize Office customers** action.
+2. Synchronization reads `dnepritloyalty.allowed_groups` and imports only members of those groups.
+3. Existing loyalty accounts are preserved; repeated synchronization is idempotent.
+4. Synchronization creates zero-balance loyalty accounts only. It does not award bonuses or recalculate old orders yet.
+5. The manager reports how many users were found, created, already existed or failed.
 
-Order status IDs are still intentionally not guessed. After installation configure:
+For the current shop configuration use:
 
 ```text
-dnepritloyalty.lifetime_statuses
-dnepritloyalty.reward_statuses
-dnepritloyalty.cancel_statuses
+dnepritloyalty.allowed_groups = 1000000000
 ```
 
-Before production use verify:
+Configured miniShop2 statuses for this shop:
 
-1. authorized checkout;
-2. lifetime status mapping;
-3. reward status mapping;
-4. cancellation status mapping;
-5. reservation and release of spent bonuses;
-6. reward idempotency after repeated status events;
-7. fixed and percentage levels;
-8. manual balance adjustment;
-9. user-group restrictions;
-10. settings loading and saving from the CMP.
+```text
+dnepritloyalty.lifetime_statuses = 2,3
+dnepritloyalty.reward_statuses   = 2,3
+dnepritloyalty.cancel_statuses   = 4,1001
+```
+
+Keep the loyalty program and bonus spending disabled while validating customer synchronization.
+
+Before moving to the next stage verify:
+
+1. only Office customers from the configured group are synchronized;
+2. MODX administrators are not imported unless they belong to that group;
+3. customer name/email are displayed from `modUserProfile`;
+4. repeated synchronization creates no duplicate accounts;
+5. all synchronized customers have zero balance and zero Lifetime total before the historical-order recalculation stage.
