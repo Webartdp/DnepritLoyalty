@@ -96,6 +96,12 @@ DnepritLoyalty.grid.Accounts = function(config) {
             },
             '->',
             {
+                text: _('dnepritloyalty_sync_office_customers'),
+                cls: 'primary-button',
+                handler: this.syncOfficeCustomers,
+                scope: this
+            },
+            {
                 text: 'Перерахувати покупки',
                 handler: this.recalculate,
                 scope: this
@@ -120,6 +126,29 @@ Ext.extend(
     {
         selectedRow: function() {
             return this.getSelectionModel().getSelected();
+        },
+
+        syncOfficeCustomers: function() {
+            MODx.Ajax.request({
+                url: DnepritLoyalty.config.connectorUrl,
+                params: {
+                    action: 'accounts/sync'
+                },
+                listeners: {
+                    success: {
+                        fn: function(response) {
+                            MODx.msg.status({
+                                title: _('dnepritloyalty'),
+                                message: response.message ||
+                                    _('dnepritloyalty_sync_done')
+                            });
+
+                            this.refresh();
+                        },
+                        scope: this
+                    }
+                }
+            });
         },
 
         adjustBalance: function() {
