@@ -11,7 +11,9 @@ $required = [
     'core/components/dnepritloyalty/elements/snippets/balance.snippet.php',
     'core/components/dnepritloyalty/elements/snippets/account.snippet.php',
     'core/components/dnepritloyalty/elements/snippets/cart.snippet.php',
+    'core/components/dnepritloyalty/processors/accounts/sync.class.php',
     'assets/components/dnepritloyalty/connector.php',
+    'assets/components/dnepritloyalty/js/mgr/widgets/accounts.grid.js',
     'assets/components/dnepritloyalty/js/mgr/widgets/settings.panel.js',
     'assets/components/dnepritloyalty/css/mgr.css',
     '_build/build.transport.php',
@@ -117,6 +119,65 @@ if (
     );
 
     exit(1);
+}
+
+$syncProcessor = file_get_contents(
+    $root .
+    '/core/components/dnepritloyalty/processors/accounts/sync.class.php'
+);
+
+foreach (
+    [
+        'dnepritloyalty.allowed_groups',
+        'modUserGroupMember',
+        'getAccount(',
+        'PDO::FETCH_COLUMN',
+    ] as $needle
+) {
+    if (
+        strpos(
+            $syncProcessor,
+            $needle
+        ) === false
+    ) {
+        fwrite(
+            STDERR,
+            'Office customer sync regression check failed: ' .
+            $needle .
+            PHP_EOL
+        );
+
+        exit(1);
+    }
+}
+
+$accountsGrid = file_get_contents(
+    $root .
+    '/assets/components/dnepritloyalty/js/mgr/widgets/accounts.grid.js'
+);
+
+foreach (
+    [
+        'syncOfficeCustomers',
+        "action: 'accounts/sync'",
+        'dnepritloyalty_sync_office_customers',
+    ] as $needle
+) {
+    if (
+        strpos(
+            $accountsGrid,
+            $needle
+        ) === false
+    ) {
+        fwrite(
+            STDERR,
+            'Accounts sync UI regression check failed: ' .
+            $needle .
+            PHP_EOL
+        );
+
+        exit(1);
+    }
 }
 
 $settingsPanel = file_get_contents(
