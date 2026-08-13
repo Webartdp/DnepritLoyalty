@@ -1,5 +1,21 @@
 # Changelog
 
+## [0.1.0-beta3] - 2026-08-13
+
+### Added
+
+- Office customer synchronization from configured MODX user groups.
+- New **Synchronize Office customers** action in the Customers tab.
+- Idempotent account creation: existing `DnepritLoyaltyAccount` rows are preserved and never duplicated.
+- Synchronization summary with matched, created, existing and failed counters.
+- Russian and Ukrainian manager lexicon strings for the synchronization flow.
+- CI regression checks for the Office synchronization processor and manager action.
+
+### Changed
+
+- Customer synchronization uses `dnepritloyalty.allowed_groups` as the source of truth, so administrators and unrelated MODX users are not imported unless their group is explicitly configured.
+- Synchronization only creates loyalty accounts. It does not recalculate Lifetime totals, award bonuses or modify existing balances.
+
 ## [0.1.0-beta2] - 2026-08-12
 
 ### Fixed
