@@ -12,6 +12,7 @@ $required = [
     'core/components/dnepritloyalty/elements/snippets/account.snippet.php',
     'core/components/dnepritloyalty/elements/snippets/cart.snippet.php',
     'core/components/dnepritloyalty/processors/accounts/sync.class.php',
+    'core/components/dnepritloyalty/processors/accounts/recalculatebulk.class.php',
     'assets/components/dnepritloyalty/connector.php',
     'assets/components/dnepritloyalty/js/mgr/widgets/accounts.grid.js',
     'assets/components/dnepritloyalty/js/mgr/widgets/settings.panel.js',
@@ -21,20 +22,11 @@ $required = [
 ];
 
 foreach ($required as $file) {
-    if (
-        !is_file(
-            $root .
-            '/' .
-            $file
-        )
-    ) {
+    if (!is_file($root . '/' . $file)) {
         fwrite(
             STDERR,
-            'Missing required file: ' .
-            $file .
-            PHP_EOL
+            'Missing required file: ' . $file . PHP_EOL
         );
-
         exit(1);
     }
 }
@@ -53,19 +45,11 @@ foreach (
         'msOnChangeOrderStatus',
     ] as $event
 ) {
-    if (
-        strpos(
-            $plugin,
-            "case '{$event}'"
-        ) === false
-    ) {
+    if (strpos($plugin, "case '{$event}'") === false) {
         fwrite(
             STDERR,
-            'Missing miniShop2 event handler: ' .
-            $event .
-            PHP_EOL
+            'Missing miniShop2 event handler: ' . $event . PHP_EOL
         );
-
         exit(1);
     }
 }
@@ -88,36 +72,20 @@ foreach (
         'processOrderStatus',
     ] as $method
 ) {
-    if (
-        strpos(
-            $service,
-            'function ' .
-            $method .
-            '('
-        ) === false
-    ) {
+    if (strpos($service, 'function ' . $method . '(') === false) {
         fwrite(
             STDERR,
-            'Missing service method: ' .
-            $method .
-            PHP_EOL
+            'Missing service method: ' . $method . PHP_EOL
         );
-
         exit(1);
     }
 }
 
-if (
-    strpos(
-        $service,
-        'FOR UPDATE'
-    ) === false
-) {
+if (strpos($service, 'FOR UPDATE') === false) {
     fwrite(
         STDERR,
         "Account mutations are not row-locked.\n"
     );
-
     exit(1);
 }
 
@@ -134,19 +102,38 @@ foreach (
         'PDO::FETCH_COLUMN',
     ] as $needle
 ) {
-    if (
-        strpos(
-            $syncProcessor,
-            $needle
-        ) === false
-    ) {
+    if (strpos($syncProcessor, $needle) === false) {
         fwrite(
             STDERR,
             'Office customer sync regression check failed: ' .
             $needle .
             PHP_EOL
         );
+        exit(1);
+    }
+}
 
+$bulkProcessor = file_get_contents(
+    $root .
+    '/core/components/dnepritloyalty/processors/accounts/recalculatebulk.class.php'
+);
+
+foreach (
+    [
+        "'user_ids'",
+        'json_decode(',
+        'recalculateLifetime(',
+        "'success_count'",
+        "'failed_count'",
+    ] as $needle
+) {
+    if (strpos($bulkProcessor, $needle) === false) {
+        fwrite(
+            STDERR,
+            'Bulk recalculation processor regression check failed: ' .
+            $needle .
+            PHP_EOL
+        );
         exit(1);
     }
 }
@@ -161,23 +148,32 @@ foreach (
         'syncOfficeCustomers',
         "action: 'accounts/sync'",
         'dnepritloyalty_sync_office_customers',
+        "action: 'accounts/recalculatebulk'",
+        'user_ids: Ext.encode(userIds)',
     ] as $needle
 ) {
-    if (
-        strpos(
-            $accountsGrid,
-            $needle
-        ) === false
-    ) {
+    if (strpos($accountsGrid, $needle) === false) {
         fwrite(
             STDERR,
-            'Accounts sync UI regression check failed: ' .
+            'Accounts UI regression check failed: ' .
             $needle .
             PHP_EOL
         );
-
         exit(1);
     }
+}
+
+if (
+    strpos(
+        $accountsGrid,
+        "action: 'accounts/recalculate',\n                            user_id: userId"
+    ) !== false
+) {
+    fwrite(
+        STDERR,
+        "Bulk recalculation must not fire one Ajax request per selected customer.\n"
+    );
+    exit(1);
 }
 
 $settingsPanel = file_get_contents(
@@ -196,34 +192,22 @@ foreach (
         'autoScroll: true',
     ] as $needle
 ) {
-    if (
-        strpos(
-            $settingsPanel,
-            $needle
-        ) === false
-    ) {
+    if (strpos($settingsPanel, $needle) === false) {
         fwrite(
             STDERR,
             'Settings UI regression check failed: ' .
             $needle .
             PHP_EOL
         );
-
         exit(1);
     }
 }
 
-if (
-    strpos(
-        $settingsPanel,
-        "xtype: 'form'"
-    ) !== false
-) {
+if (strpos($settingsPanel, "xtype: 'form'") !== false) {
     fwrite(
         STDERR,
         "Settings panel must not use a zero-height nested form.\n"
     );
-
     exit(1);
 }
 
@@ -239,22 +223,15 @@ foreach (
         '.dnepritloyalty-settings-toolbar',
     ] as $selector
 ) {
-    if (
-        strpos(
-            $managerCss,
-            $selector
-        ) === false
-    ) {
+    if (strpos($managerCss, $selector) === false) {
         fwrite(
             STDERR,
             'Missing settings UI style: ' .
             $selector .
             PHP_EOL
         );
-
         exit(1);
     }
 }
 
-echo
-    "Architecture checks passed.\n";
+echo "Architecture checks passed.\n";
