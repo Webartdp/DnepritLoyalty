@@ -3,41 +3,36 @@
 Current prerelease:
 
 ```text
-Version: 0.1.0-beta3
-Package: dnepritloyalty-0.1.0-beta3.transport.zip
+Version: 0.1.0-beta4
+Package: dnepritloyalty-0.1.0-beta4.transport.zip
 Target: MODX Revolution 2.8.1 / PHP 7.4+ / miniShop2 / Office-compatible modUser accounts
 ```
 
-Beta3 adds the first explicit Office integration step: synchronization of existing shop customers from configured MODX user groups into loyalty accounts.
+Beta4 completes the customer-selection UI needed for the Office integration stage.
 
-Primary beta3 changes:
+Primary beta4 changes:
 
-1. Customers tab has a **Synchronize Office customers** action.
-2. Synchronization reads `dnepritloyalty.allowed_groups` and imports only members of those groups.
-3. Existing loyalty accounts are preserved; repeated synchronization is idempotent.
-4. Synchronization creates zero-balance loyalty accounts only. It does not award bonuses or recalculate old orders yet.
-5. The manager reports how many users were found, created, already existed or failed.
+1. Customers grid now has a visible checkbox selection column.
+2. Added **Open user** action for the selected MODX/Office customer.
+3. Right-click context menu provides Open user, Recalculate purchases and Adjust balance actions.
+4. Double-clicking a customer opens the MODX user edit page.
+5. Synchronization and Lifetime recalculation failures are shown visibly instead of failing silently.
+6. Customer actions explain when no row is selected.
 
 For the current shop configuration use:
 
 ```text
 dnepritloyalty.allowed_groups = 1000000000
-```
-
-Configured miniShop2 statuses for this shop:
-
-```text
 dnepritloyalty.lifetime_statuses = 2,3
 dnepritloyalty.reward_statuses   = 2,3
 dnepritloyalty.cancel_statuses   = 4,1001
 ```
 
-Keep the loyalty program and bonus spending disabled while validating customer synchronization.
+Keep the loyalty program and bonus spending disabled while validating historical purchase totals.
 
-Before moving to the next stage verify:
+Next validation step:
 
-1. only Office customers from the configured group are synchronized;
-2. MODX administrators are not imported unless they belong to that group;
-3. customer name/email are displayed from `modUserProfile`;
-4. repeated synchronization creates no duplicate accounts;
-5. all synchronized customers have zero balance and zero Lifetime total before the historical-order recalculation stage.
+1. select one synchronized Office customer;
+2. open the MODX user profile and verify the identity;
+3. run **Recalculate purchases**;
+4. compare the resulting Lifetime total with that customer's paid/sent miniShop2 orders.

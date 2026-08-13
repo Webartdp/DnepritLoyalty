@@ -1,6 +1,10 @@
 DnepritLoyalty.grid.Accounts = function(config) {
     config = config || {};
 
+    var selectionModel = new Ext.grid.CheckboxSelectionModel({
+        singleSelect: true
+    });
+
     Ext.applyIf(config, {
         id: 'dnepritloyalty-grid-accounts',
         url: DnepritLoyalty.config.connectorUrl,
@@ -25,14 +29,16 @@ DnepritLoyalty.grid.Accounts = function(config) {
         paging: true,
         remoteSort: true,
         autosave: false,
+        sm: selectionModel,
         columns: [
+            selectionModel,
             {
                 header: 'ID',
                 dataIndex: 'user_id',
                 width: 55
             },
             {
-                header: 'Клієнт',
+                header: 'Клиент',
                 dataIndex: 'fullname',
                 width: 180
             },
@@ -62,17 +68,17 @@ DnepritLoyalty.grid.Accounts = function(config) {
                 width: 100
             },
             {
-                header: 'Рівень',
+                header: 'Уровень',
                 dataIndex: 'level_title',
                 width: 110
             },
             {
-                header: 'Знижка',
+                header: 'Скидка',
                 dataIndex: 'discount_value',
                 width: 80
             },
             {
-                header: 'Оновлено',
+                header: 'Обновлено',
                 dataIndex: 'updated_at',
                 width: 135
             }
@@ -81,7 +87,7 @@ DnepritLoyalty.grid.Accounts = function(config) {
             {
                 xtype: 'textfield',
                 id: 'dnepritloyalty-accounts-search',
-                emptyText: 'Пошук...',
+                emptyText: 'Поиск...',
                 listeners: {
                     change: {
                         fn: function(field) {
@@ -102,12 +108,17 @@ DnepritLoyalty.grid.Accounts = function(config) {
                 scope: this
             },
             {
-                text: 'Перерахувати покупки',
+                text: 'Открыть пользователя',
+                handler: this.openUser,
+                scope: this
+            },
+            {
+                text: 'Пересчитать покупки',
                 handler: this.recalculate,
                 scope: this
             },
             {
-                text: 'Змінити баланс',
+                text: _('dnepritloyalty_adjust'),
                 handler: this.adjustBalance,
                 scope: this
             }
@@ -118,6 +129,15 @@ DnepritLoyalty.grid.Accounts = function(config) {
         this,
         config
     );
+
+    this.on(
+        'rowdblclick',
+        function(grid, rowIndex) {
+            grid.getSelectionModel().selectRow(rowIndex);
+            grid.openUser();
+        },
+        this
+    );
 };
 
 Ext.extend(
@@ -125,7 +145,50 @@ Ext.extend(
     MODx.grid.Grid,
     {
         selectedRow: function() {
+            if (
+                this.menu &&
+                this.menu.record
+            ) {
+                return this.menu.record;
+            }
+
             return this.getSelectionModel().getSelected();
+        },
+
+        requireSelectedRow: function() {
+            var row = this.selectedRow();
+
+            if (!row) {
+                MODx.msg.alert(
+                    'Внимание',
+                    'Выберите клиента галочкой или строкой.'
+                );
+
+                return false;
+            }
+
+            return row;
+        },
+
+        getMenu: function() {
+            return [
+                {
+                    text: 'Открыть пользователя',
+                    handler: this.openUser,
+                    scope: this
+                },
+                '-',
+                {
+                    text: 'Пересчитать покупки',
+                    handler: this.recalculate,
+                    scope: this
+                },
+                {
+                    text: _('dnepritloyalty_adjust'),
+                    handler: this.adjustBalance,
+                    scope: this
+                }
+            ];
         },
 
         syncOfficeCustomers: function() {
@@ -146,19 +209,38 @@ Ext.extend(
                             this.refresh();
                         },
                         scope: this
+                    },
+                    failure: {
+                        fn: function(response) {
+                            MODx.msg.alert(
+                                _('error'),
+                                response.message ||
+                                    _('dnepritloyalty_sync_failed')
+                            );
+                        },
+                        scope: this
                     }
                 }
             });
         },
 
-        adjustBalance: function() {
-            var row = this.selectedRow();
+        openUser: function() {
+            var row = this.requireSelectedRow();
 
             if (!row) {
-                MODx.msg.alert(
-                    'Увага',
-                    'Оберіть клієнта.'
-                );
+                return;
+            }
+
+            MODx.loadPage(
+                'security/user/update',
+                'id=' + parseInt(row.data.user_id, 10)
+            );
+        },
+
+        adjustBalance: function() {
+            var row = this.requireSelectedRow();
+
+            if (!row) {
                 return;
             }
 
@@ -180,13 +262,9 @@ Ext.extend(
         },
 
         recalculate: function() {
-            var row = this.selectedRow();
+            var row = this.requireSelectedRow();
 
             if (!row) {
-                MODx.msg.alert(
-                    'Увага',
-                    'Оберіть клієнта.'
-                );
                 return;
             }
 
@@ -198,8 +276,24 @@ Ext.extend(
                 },
                 listeners: {
                     success: {
-                        fn: function() {
+                        fn: function(response) {
+                            MODx.msg.status({
+                                title: _('dnepritloyalty'),
+                                message: response.message ||
+                                    'Покупки пересчитаны.'
+                            });
+
                             this.refresh();
+                        },
+                        scope: this
+                    },
+                    failure: {
+                        fn: function(response) {
+                            MODx.msg.alert(
+                                _('error'),
+                                response.message ||
+                                    'Не удалось пересчитать покупки.'
+                            );
                         },
                         scope: this
                     }
@@ -218,7 +312,7 @@ DnepritLoyalty.window.Adjust = function(config) {
     config = config || {};
 
     Ext.applyIf(config, {
-        title: 'Змінити бонусний баланс',
+        title: 'Изменить бонусный баланс',
         url: DnepritLoyalty.config.connectorUrl,
         action: 'transactions/adjust',
         fields: [
@@ -228,19 +322,19 @@ DnepritLoyalty.window.Adjust = function(config) {
             },
             {
                 xtype: 'displayfield',
-                fieldLabel: 'Клієнт',
+                fieldLabel: 'Клиент',
                 name: 'fullname'
             },
             {
                 xtype: 'numberfield',
-                fieldLabel: 'Сума (+/-)',
+                fieldLabel: 'Сумма (+/-)',
                 name: 'amount',
                 allowBlank: false,
                 decimalPrecision: 2
             },
             {
                 xtype: 'textarea',
-                fieldLabel: 'Коментар',
+                fieldLabel: 'Комментарий',
                 name: 'comment',
                 anchor: '100%'
             }
