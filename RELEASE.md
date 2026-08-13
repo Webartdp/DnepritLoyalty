@@ -3,21 +3,21 @@
 Current prerelease:
 
 ```text
-Version: 0.1.0-beta6
-Package: dnepritloyalty-0.1.0-beta6.transport.zip
+Version: 0.1.0-beta7
+Package: dnepritloyalty-0.1.0-beta7.transport.zip
 Target: MODX Revolution 2.8.1 / PHP 7.4+ / miniShop2 / Office-compatible modUser accounts
 ```
 
-Beta6 fixes bulk Lifetime recalculation for selected Office customers.
+Beta7 fixes the request storm discovered during Select All Lifetime recalculation.
 
-Primary beta6 changes:
+Primary beta7 changes:
 
 1. Customers grid keeps true multi-select checkbox behavior.
-2. Bulk **Recalculate purchases** normalizes selected Ext records before reading `user_id`.
-3. Raw context-menu records and normal Ext Records are both supported.
-4. Hidden stale context-menu records no longer override the toolbar checkbox selection.
-5. Invalid rows are counted as failed instead of crashing the manager JavaScript.
-6. The grid refreshes after the whole batch finishes.
+2. Bulk **Recalculate purchases** sends one POST request with all selected `user_id` values.
+3. New `accounts/recalculatebulk` processor recalculates customers sequentially inside one server request.
+4. The processor returns requested, successful and failed counts in one response.
+5. The manager no longer opens many simultaneous MODX Ajax failure dialogs when the server rejects parallel requests.
+6. Single-customer Open user and Adjust balance behavior is unchanged.
 
 For the current shop configuration use:
 
@@ -32,7 +32,8 @@ Keep the loyalty program and bonus spending disabled while validating historical
 
 Next validation step:
 
-1. select one or all synchronized Office customers;
-2. run **Recalculate purchases**;
-3. verify the manager reports how many customers were recalculated;
-4. compare each Lifetime total with that customer's paid/sent miniShop2 orders.
+1. select all synchronized Office customers;
+2. run **Recalculate purchases** once;
+3. verify Network shows one `accounts/recalculatebulk` POST request rather than one request per customer;
+4. verify the manager reports successful/failed counts;
+5. compare each Lifetime total with that customer's paid/sent miniShop2 orders.
