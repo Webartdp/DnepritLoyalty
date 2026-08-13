@@ -110,3 +110,18 @@ $_lang['dnepritloyalty_settings_saved'] =
 
 $_lang['dnepritloyalty_settings_load_error'] =
     'Не удалось загрузить настройки программы лояльности.';
+
+$_lang['dnepritloyalty_sync_office_customers'] =
+    'Синхронизировать клиентов Office';
+
+$_lang['dnepritloyalty_sync_groups_required'] =
+    'Сначала укажите ID групп покупателей в настройке «Группы пользователей».';
+
+$_lang['dnepritloyalty_sync_failed'] =
+    'Не удалось получить пользователей выбранных групп.';
+
+$_lang['dnepritloyalty_sync_done'] =
+    'Синхронизация клиентов завершена.';
+
+$_lang['dnepritloyalty_sync_success'] =
+    'Синхронизация завершена. Найдено: [[+matched]], создано счетов: [[+created]], уже существовало: [[+existing]], ошибок: [[+failed]].';
