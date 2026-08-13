@@ -570,7 +570,7 @@ foreach (
                         true,
 
                     xPDOTransport::UPDATE_OBJECT =>
-                        true,
+                        false,
                 ]
             )
         )
