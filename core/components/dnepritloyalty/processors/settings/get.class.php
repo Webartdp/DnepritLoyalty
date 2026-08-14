@@ -5,7 +5,6 @@ class DnepritLoyaltySettingsGetProcessor extends modProcessor
     public function process()
     {
         $keys = [
-            'enabled',
             'point_value',
             'order_reward_percent',
             'min_order_for_reward',
