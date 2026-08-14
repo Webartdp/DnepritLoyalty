@@ -73,13 +73,6 @@ DnepritLoyalty.panel.Settings = function(config) {
                 },
                 items: [
                     {
-                        xtype: 'xcheckbox',
-                        name: 'enabled',
-                        inputValue: 1,
-                        uncheckedValue: 0,
-                        boxLabel: _('dnepritloyalty_settings_enabled')
-                    },
-                    {
                         xtype: 'numberfield',
                         name: 'point_value',
                         fieldLabel: _('dnepritloyalty_settings_point_value'),
