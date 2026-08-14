@@ -4,8 +4,26 @@ class DnepritLoyaltySettingsSaveProcessor extends modProcessor
 {
     public function process()
     {
+        /*
+         * DnepritLoyalty is always enabled. Keep the legacy system setting
+         * pinned to 1 so older installations cannot disable the program.
+         */
+        $enabledSetting = $this->modx->getObject(
+            'modSystemSetting',
+            ['key' => 'dnepritloyalty.enabled']
+        );
+
+        if ($enabledSetting) {
+            $enabledSetting->set('value', '1');
+
+            if (!$enabledSetting->save()) {
+                return $this->failure(
+                    'Не вдалося увімкнути програму лояльності.'
+                );
+            }
+        }
+
         $keys = [
-            'enabled',
             'point_value',
             'order_reward_percent',
             'min_order_for_reward',
