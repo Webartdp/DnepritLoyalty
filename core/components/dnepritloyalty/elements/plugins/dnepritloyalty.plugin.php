@@ -8,14 +8,13 @@ $corePath = $modx->getOption(
 
 require_once $corePath . 'model/dnepritloyalty/dnepritloyalty.class.php';
 
-$loyalty = new DnepritLoyalty($modx);
+/*
+ * The loyalty program is permanently enabled. This runtime override also
+ * neutralizes legacy installations where dnepritloyalty.enabled was saved as 0.
+ */
+$modx->setOption('dnepritloyalty.enabled', true);
 
-if (
-    !$loyalty->isEnabled() &&
-    $modx->event->name !== 'OnUserSave'
-) {
-    return;
-}
+$loyalty = new DnepritLoyalty($modx);
 
 switch ($modx->event->name) {
     case 'OnUserSave':
