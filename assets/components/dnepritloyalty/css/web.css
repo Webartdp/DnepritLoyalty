@@ -1,9 +1,197 @@
 .dneprit-loyalty-checkout {
-    margin: 1rem 0;
+    --dl-border: rgba(20, 20, 20, .1);
+    --dl-muted: #777;
+    --dl-bg: #fff;
+    --dl-soft: #f7f7f7;
+    --dl-accent: #d97893;
+    --dl-accent-soft: #fbeef2;
+    --dl-success: #668f79;
+    box-sizing: border-box;
+    width: 100%;
+    margin: 18px 0;
+    padding: 18px;
+    border: 1px solid var(--dl-border);
+    border-radius: 18px;
+    background: var(--dl-bg);
+    color: #161616;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, .04);
 }
 
-.dneprit-loyalty-checkout label {
+.dneprit-loyalty-checkout *,
+.dneprit-loyalty-checkout *::before,
+.dneprit-loyalty-checkout *::after {
+    box-sizing: border-box;
+}
+
+.dneprit-loyalty-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 18px;
+    padding-bottom: 14px;
+    border-bottom: 1px solid var(--dl-border);
+}
+
+.dneprit-loyalty-title,
+.dneprit-loyalty-balance {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+
+.dneprit-loyalty-kicker,
+.dneprit-loyalty-balance > span {
+    color: var(--dl-muted);
+    font-size: 12px;
+    line-height: 1.3;
+}
+
+.dneprit-loyalty-title strong,
+.dneprit-loyalty-balance strong {
+    font-size: 16px;
+    line-height: 1.3;
+}
+
+.dneprit-loyalty-balance {
+    text-align: right;
+}
+
+.dneprit-loyalty-balance strong {
+    color: var(--dl-accent);
+}
+
+.dneprit-loyalty-summary {
+    display: grid;
+    gap: 8px;
+    padding: 14px 0;
+    border-bottom: 1px solid var(--dl-border);
+}
+
+.dneprit-loyalty-summary > div {
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    font-size: 14px;
+}
+
+.dneprit-loyalty-summary > div > span {
+    color: var(--dl-muted);
+}
+
+.dneprit-loyalty-summary .dneprit-loyalty-total {
+    padding-top: 4px;
+    font-size: 16px;
+}
+
+.dneprit-loyalty-summary .dneprit-loyalty-total > span,
+.dneprit-loyalty-summary .dneprit-loyalty-total strong {
+    color: #161616;
+}
+
+.dneprit-loyalty-spend {
+    padding-top: 14px;
+}
+
+.dneprit-loyalty-spend-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    margin-bottom: 10px;
+}
+
+.dneprit-loyalty-spend-row label {
+    margin: 0;
+    font-weight: 600;
+    font-size: 14px;
+}
+
+.dneprit-loyalty-number {
+    display: flex;
+    align-items: center;
+    min-width: 150px;
+    padding: 0 10px;
+    border: 1px solid var(--dl-border);
+    border-radius: 10px;
+    background: var(--dl-soft);
+}
+
+.dneprit-loyalty-number input {
+    width: 82px;
+    min-width: 0;
+    height: 38px;
+    padding: 0;
+    border: 0;
+    outline: none;
+    background: transparent;
+    text-align: right;
+    font: inherit;
+    font-weight: 600;
+}
+
+.dneprit-loyalty-number span {
+    padding-left: 6px;
+    color: var(--dl-muted);
+    font-size: 12px;
+}
+
+.dneprit-loyalty-range {
     display: block;
+    width: 100%;
+    margin: 8px 0 12px;
+    accent-color: var(--dl-accent);
+}
+
+.dneprit-loyalty-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 8px;
+}
+
+.dneprit-loyalty-actions button {
+    min-height: 34px;
+    padding: 7px 12px;
+    border: 1px solid var(--dl-border);
+    border-radius: 999px;
+    background: #fff;
+    color: #161616;
+    cursor: pointer;
+    font: inherit;
+    font-size: 12px;
+    transition: background .2s ease, border-color .2s ease;
+}
+
+.dneprit-loyalty-actions button:first-child {
+    border-color: transparent;
+    background: var(--dl-accent-soft);
+    color: #9f4961;
+}
+
+.dneprit-loyalty-actions button:hover {
+    border-color: rgba(20, 20, 20, .22);
+}
+
+.dneprit-loyalty-spend small,
+.dneprit-loyalty-empty {
+    display: block;
+    color: var(--dl-muted);
+    font-size: 12px;
+    line-height: 1.45;
+}
+
+.dneprit-loyalty-empty {
+    padding-top: 14px;
+}
+
+.dneprit-loyalty-checkout.is-disabled .dneprit-loyalty-range,
+.dneprit-loyalty-checkout.is-disabled .dneprit-loyalty-number,
+.dneprit-loyalty-checkout.is-disabled .dneprit-loyalty-actions {
+    opacity: .55;
+}
+
+.dneprit-loyalty-checkout.has-error {
+    border-color: rgba(180, 60, 60, .25);
 }
 
 .dneprit-loyalty-history {
@@ -14,4 +202,31 @@
 .dneprit-loyalty-history td {
     padding: .35rem;
     border-bottom: 1px solid #ddd;
+}
+
+@media (max-width: 575px) {
+    .dneprit-loyalty-checkout {
+        padding: 15px;
+        border-radius: 14px;
+    }
+
+    .dneprit-loyalty-head,
+    .dneprit-loyalty-spend-row {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .dneprit-loyalty-balance {
+        text-align: left;
+    }
+
+    .dneprit-loyalty-number {
+        width: 100%;
+    }
+
+    .dneprit-loyalty-number input {
+        flex: 1 1 auto;
+        width: auto;
+        text-align: left;
+    }
 }
