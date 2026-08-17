@@ -115,10 +115,10 @@ $labels = $isRu
     ];
 
 $modx->regClientCSS(
-    $assetsUrl . 'css/web.css?v=0.1.0-beta19'
+    $assetsUrl . 'css/web.css?v=0.1.0-beta21'
 );
 $modx->regClientScript(
-    $assetsUrl . 'js/web/cart.js?v=0.1.0-beta19'
+    $assetsUrl . 'js/web/cart.js?v=0.1.0-beta21'
 );
 
 $endpoint = $assetsUrl . 'action.php?ctx=' . rawurlencode($modx->context->key);
