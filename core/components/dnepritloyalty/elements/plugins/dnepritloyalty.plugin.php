@@ -8,10 +8,7 @@ $corePath = $modx->getOption(
 
 require_once $corePath . 'model/dnepritloyalty/dnepritloyalty.class.php';
 
-/*
- * The loyalty program is permanently enabled. This runtime override also
- * neutralizes legacy installations where dnepritloyalty.enabled was saved as 0.
- */
+/* DnepritLoyalty is permanently enabled. */
 $modx->setOption('dnepritloyalty.enabled', true);
 
 $loyalty = new DnepritLoyalty($modx);
@@ -111,6 +108,18 @@ switch ($modx->event->name) {
         break;
 
     case 'msOnGetOrderCost':
+        /*
+         * miniShop2 also calls getCost(false, true) for delivery-only cost.
+         * Loyalty affects product cost only and must not reset checkout state
+         * during that delivery-only calculation.
+         */
+        if (
+            isset($with_cart) &&
+            !$with_cart
+        ) {
+            break;
+        }
+
         $userId = $modx->user
             ? (int)$modx->user->id
             : 0;
@@ -185,7 +194,7 @@ switch ($modx->event->name) {
             )
         );
 
-        $values['cost'] = max(
+        $finalCost = max(
             0,
             round(
                 $afterDiscount -
@@ -193,6 +202,9 @@ switch ($modx->event->name) {
                 2
             )
         );
+
+        $values['cost'] =
+            $finalCost;
 
         $_SESSION[
             'dnepritloyalty_checkout'
@@ -209,11 +221,20 @@ switch ($modx->event->name) {
                 ]['reservation_key'] ??
                 '',
 
+            'base_cost' =>
+                $baseCost,
+
             'discount_amount' =>
                 $discount,
 
             'effective_points' =>
                 $effective,
+
+            'spend_money' =>
+                $spendMoney,
+
+            'final_cost' =>
+                $finalCost,
         ];
         break;
 
@@ -238,14 +259,54 @@ switch ($modx->event->name) {
         if (
             $userId <= 0 ||
             (int)($checkout['user_id'] ?? 0) !==
-                $userId ||
+                $userId
+        ) {
+            break;
+        }
+
+        /*
+         * Persist the loyalty result into the real miniShop2 order.
+         * Delivery is free on this shop, so cost equals the product total
+         * after Lifetime Discount and bonus spending.
+         */
+        if (
+            array_key_exists(
+                'final_cost',
+                $checkout
+            )
+        ) {
+            $finalCost = max(
+                0,
+                round(
+                    (float)$checkout[
+                        'final_cost'
+                    ],
+                    2
+                )
+            );
+
+            $msOrder->set(
+                'cart_cost',
+                $finalCost
+            );
+
+            $msOrder->set(
+                'cost',
+                $finalCost
+            );
+        }
+
+        $points = max(
+            0,
             (float)(
                 $checkout[
                     'effective_points'
                 ] ??
                 0
-            ) <= 0
-        ) {
+            )
+        );
+
+        if ($points <= 0) {
             break;
         }
 
@@ -265,10 +326,6 @@ switch ($modx->event->name) {
             $userId .
             ':' .
             $nonce;
-
-        $points = (float)$checkout[
-            'effective_points'
-        ];
 
         if (
             !$loyalty->reservePoints(
