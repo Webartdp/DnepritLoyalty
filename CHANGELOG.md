@@ -1,5 +1,26 @@
 # Changelog
 
+## [0.1.0-beta23] - 2026-08-17
+
+### Validated stable baseline
+
+- Customer synchronization and manager customer list are working.
+- Lifetime purchase recalculation is working against configured miniShop2 statuses.
+- Automatic loyalty levels and discounts are working.
+- Customer editing inside the DnepritLoyalty manager is working.
+- Direct bonus balance adjustment remains transaction-based to preserve audit history.
+- Bonus spending in checkout is working.
+- Checkout totals update live when bonus points are selected.
+- The final miniShop2 order cost is stored with the loyalty discount and bonus spend applied.
+- Bonus earning after the configured paid/order status is working.
+- Bonus spend is returned correctly when an order is moved to a configured cancellation status.
+- Manager JavaScript namespace initialization was hardened with `DnepritLoyalty.combo` support so the customer edit window and level combo register reliably.
+
+### Notes
+
+- beta23 is the tested baseline for further development.
+- Deleting an order is not treated as the same workflow as changing an order to a cancellation status; cancellation-status handling is the validated refund path.
+
 ## [0.1.0-beta7] - 2026-08-13
 
 ### Fixed
