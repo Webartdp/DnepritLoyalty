@@ -76,17 +76,12 @@ class DnepritLoyaltyAccountsRecalculateBulkProcessor extends modProcessor
         $results = [];
 
         foreach ($userIds as $userId) {
-            if (!$loyalty->isUserAllowed($userId)) {
-                $failedCount++;
-                $results[] = [
-                    'user_id' => $userId,
-                    'success' => false,
-                    'message' => 'Користувач не входить до дозволеної групи.',
-                ];
-                continue;
-            }
-
             try {
+                /*
+                 * Manual Lifetime recalculation is an administrative action.
+                 * It must not be blocked by allowed_groups: group restrictions
+                 * apply to earning/spending bonuses, not to reading order history.
+                 */
                 $total = $loyalty->recalculateLifetime(
                     $userId
                 );
