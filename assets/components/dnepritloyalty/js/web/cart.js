@@ -36,6 +36,70 @@
         }
     }
 
+    function setMoneyElement(el, value) {
+        if (!el || el.closest('[data-dneprit-loyalty-cart]')) {
+            return;
+        }
+
+        var formatted = money(value);
+
+        if (el.tagName === 'INPUT') {
+            el.value = round(value).toFixed(2);
+            return;
+        }
+
+        var nested = el.querySelector(
+            '[data-ms2-price-value], [data-price-value], .price-value, .amount-value'
+        );
+
+        if (nested) {
+            nested.textContent = formatted;
+        } else if (!el.children.length) {
+            el.textContent = formatted;
+        } else {
+            var textNodes = Array.prototype.filter.call(el.childNodes, function (node) {
+                return node.nodeType === 3 && /[0-9]/.test(node.nodeValue || '');
+            });
+
+            if (textNodes.length) {
+                textNodes[0].nodeValue = formatted;
+            }
+        }
+
+        el.setAttribute('data-dneprit-loyalty-adjusted', '1');
+    }
+
+    function syncMiniShopTotals(finalCost) {
+        var selectors = [
+            '.ms2_total_cost',
+            '.ms2_order_cost',
+            '[data-ms2-total-cost]',
+            '[data-ms2-order-cost]'
+        ];
+        var seen = [];
+
+        selectors.forEach(function (selector) {
+            Array.prototype.forEach.call(document.querySelectorAll(selector), function (el) {
+                if (seen.indexOf(el) !== -1) {
+                    return;
+                }
+                seen.push(el);
+                setMoneyElement(el, finalCost);
+            });
+        });
+
+        try {
+            document.dispatchEvent(new CustomEvent('dnepritloyalty:totalChanged', {
+                detail: {
+                    cart_cost: state ? round(state.cart_cost) : 0,
+                    discount_amount: state ? round(state.discount_amount) : 0,
+                    points: round(selectedPoints),
+                    final_cost: round(finalCost)
+                }
+            }));
+        } catch (e) {}
+    }
+
     function show(el, visible) {
         if (!el) {
             return;
@@ -118,6 +182,8 @@
         var spendMoney = Math.min(number(state.after_discount), round(selectedPoints * pointValue));
         var finalCost = Math.max(0, round(number(state.after_discount) - spendMoney));
         var canSpend = !!state.can_spend && number(state.max_points) > 0;
+
+        syncMiniShopTotals(finalCost);
 
         roots.forEach(function (root) {
             root.classList.toggle('is-disabled', !canSpend);
