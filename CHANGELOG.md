@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.1.0-beta25] - 2026-08-18
+
+### Fixed
+
+- Fixed `object_err_ns` when editing Lifetime level fields directly in the Levels grid.
+- MODX grid autosave sends the edited row as JSON in the `data` parameter; the level update processor now decodes that payload before `modObjectUpdateProcessor` resolves the object by `id`.
+- Applied the same fix to Rules grid inline editing because it uses the same autosave mechanism.
+- No checkout, bonus calculation, Lifetime calculation, order status or cancellation behavior was changed from beta23.
+
+### Status
+
+- beta23 remains the previously validated functional baseline.
+- beta25 is beta23 plus the manager inline-edit bugfix and should replace beta23 after the level threshold edit is verified on the shop.
+- beta24 experimental reward-range work was not adopted and is not part of beta25.
+
 ## [0.1.0-beta23] - 2026-08-17
 
 ### Validated stable baseline
